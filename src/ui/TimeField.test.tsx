@@ -21,6 +21,19 @@ const hour = (value: number) => screen.getByRole('option', { name: `Час ${val
 const minute = (value: number) => screen.getByRole('option', { name: `Минута ${value}` })
 
 describe('24-hour time wheels', () => {
+  it.each(['resize', 'orientationchange'])('closes on %s without committing a pending selection and reopens', async event => {
+    const changed = show('09:00', '17:30', '10:17')
+    await open()
+    await userEvent.setup().click(hour(14))
+    fireEvent(window, new Event(event))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Начало')).toHaveValue('10:17')
+    expect(screen.getByLabelText('Начало')).toHaveFocus()
+    expect(changed).not.toHaveBeenCalled()
+    await open()
+    expect(screen.getByRole('button', { name: 'Выбрать 10:17' })).toBeEnabled()
+  })
+
   it('offers separate hour/minute wheels with only available business times', async () => {
     show()
     await open()

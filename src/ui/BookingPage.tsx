@@ -23,6 +23,5 @@ export function BookingPage({ controller: c }: { controller: BookingController }
       </section>
       <BookingForm controller={c} />
     </div>
-    <footer className="mt-8 border-t border-stone-200 pt-5 text-xs leading-6 text-stone-600">Брони не пересекаются. Соседние интервалы могут начинаться сразу друг за другом.</footer>
   </main>
 }

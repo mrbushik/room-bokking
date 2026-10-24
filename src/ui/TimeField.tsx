@@ -41,6 +41,16 @@ export function TimeField({ id, label, value, min, max, disabled, error, onChang
       top: Math.max(12, Math.min(field.bottom + 6, window.innerHeight - popup.height - 12)),
     })
     panel.current.querySelector<HTMLDivElement>('[role="listbox"]')?.focus({ preventScroll: true })
+    const closeOnViewportChange = () => {
+      setOpen(false)
+      input.current?.focus({ preventScroll: true })
+    }
+    window.addEventListener('resize', closeOnViewportChange)
+    window.addEventListener('orientationchange', closeOnViewportChange)
+    return () => {
+      window.removeEventListener('resize', closeOnViewportChange)
+      window.removeEventListener('orientationchange', closeOnViewportChange)
+    }
   }, [expanded])
 
   function show() {
