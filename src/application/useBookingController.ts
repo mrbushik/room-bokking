@@ -9,7 +9,7 @@ import { bookingsOptions } from './bookingQueries'
 import { useNow } from './useNow'
 
 const emptyDraft = () => ({ start: '', end: '', title: '' })
-type Command = { kind: 'create' | 'update'; input: BookingInput; id?: string } | { kind: 'delete'; id: string }
+type Command = { kind: 'create'; input: BookingInput } | { kind: 'update'; input: BookingInput; id: string } | { kind: 'delete'; id: string }
 type Notice = { kind: 'error' | 'success'; text: string } | null
 
 export function useBookingController(api: BookingsApi, clock: Clock) {
@@ -34,7 +34,7 @@ export function useBookingController(api: BookingsApi, clock: Clock) {
     retry: false,
     mutationFn: async (command: Command) => {
       if (command.kind === 'delete') { await api.remove(command.id); return }
-      if (command.kind === 'update' && command.id) return api.update(command.id, command.input)
+      if (command.kind === 'update') return api.update(command.id, command.input)
       return api.create(command.input)
     },
     onSuccess: async (_saved, command) => {

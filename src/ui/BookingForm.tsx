@@ -1,15 +1,25 @@
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { BookingController } from '../application/useBookingController'
+import type { BookingField } from '../domain/booking'
 
 export function BookingForm({ controller: c }: { controller: BookingController }) {
-  const heading = useRef<HTMLHeadingElement>(null)
+  const pendingFocus = useRef<BookingField | undefined>(undefined)
+  const [focusRequest, setFocusRequest] = useState(0)
+  useEffect(() => {
+    if (!c.isBusy && pendingFocus.current) {
+      document.getElementById(`booking-${pendingFocus.current}`)?.focus()
+      pendingFocus.current = undefined
+    }
+  }, [focusRequest, c.isBusy])
   return <section className="rounded-2xl border border-stone-200 bg-white p-5 sm:p-6" aria-labelledby="form-heading">
     <p className="text-xs font-semibold tracking-widest text-teal-700 uppercase">{c.editing ? 'Редактирование' : 'Новая встреча'}</p>
-    <h2 id="form-heading" ref={heading} className="mt-2 text-xl font-semibold tracking-tight">{c.editing ? 'Изменить бронирование' : 'Забронировать комнату'}</h2>
+    <h2 id="form-heading" className="mt-2 text-xl font-semibold tracking-tight">{c.editing ? 'Изменить бронирование' : 'Забронировать комнату'}</h2>
     <p className="mt-2 text-sm leading-6 text-stone-500">От 30 минут до 2 часов. Начать можно в любую минуту.</p>
     <form noValidate className="mt-6 space-y-5" onSubmit={event => {
       event.preventDefault()
-      void c.save().then(field => { if (field) document.getElementById(`booking-${field}`)?.focus() })
+      void c.save().then(field => {
+        if (field) { pendingFocus.current = field; setFocusRequest(value => value + 1) }
+      })
     }} aria-busy={c.isBusy}>
       <div className="grid grid-cols-2 gap-3">
         {(['start', 'end'] as const).map(field => <div key={field} className="min-w-0">
@@ -19,7 +29,7 @@ export function BookingForm({ controller: c }: { controller: BookingController }
         </div>)}
       </div>
       <div>
-        <label htmlFor="booking-title" className="field-label">Название <span className="font-normal text-stone-400">· необязательно</span></label>
+        <label htmlFor="booking-title" className="field-label">Название <span className="font-normal text-stone-500">· необязательно</span></label>
         <input id="booking-title" type="text" autoComplete="off" placeholder="Например, встреча команды" value={c.draft.title} disabled={c.isBusy} onChange={e => c.changeField('title', e.target.value)} aria-invalid={!!c.errors.title?.length} aria-describedby={c.errors.title?.length ? 'title-error' : undefined} className="field-input" />
         {!!c.errors.title?.length && <p id="title-error" className="field-error">{c.errors.title.join(' ')}</p>}
       </div>
