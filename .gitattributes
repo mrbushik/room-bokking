@@ -1,0 +1,3 @@
+# Preserve genuine transcript text, including original Markdown line breaks.
+docs/ai-history.md -text -whitespace
+docs/initial-request.txt -text -whitespace
