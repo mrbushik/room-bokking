@@ -19,7 +19,7 @@ export function BookingPage({ controller: c }: { controller: BookingController }
         {c.query.fetchStatus === 'paused' && <p role="status" className="mb-4 text-sm text-amber-800">Загрузка ожидает подключения к сети.</p>}
         {(c.query.isError || c.refreshWarning) && <p role="alert" className="mb-4 rounded-lg bg-red-50 p-3 text-sm leading-6 text-red-800">{c.refreshWarning || 'Не удалось загрузить расписание. Повторите загрузку.'}</p>}
         {c.query.data !== undefined && <DayTimeline bookings={c.bookings} busy={c.isBusy} onEdit={c.edit} />}
-        {c.query.data === undefined && !c.query.isFetching && !c.query.isError && <p className="py-10 text-center text-stone-500">Выберите корректную дату.</p>}
+        {c.query.data === undefined && c.query.fetchStatus === 'idle' && !c.query.isError && <p className="py-10 text-center text-stone-500">Выберите корректную дату.</p>}
       </section>
       <BookingForm controller={c} />
     </div>

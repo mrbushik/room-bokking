@@ -24,7 +24,8 @@ export function createBookingsApi(baseUrl: string): BookingsApi {
     }
     let body: unknown
     try { body = response.status === 204 ? undefined : await response.json() }
-    catch {
+    catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') throw error
       throw new ApiError(response.ok ? 'API вернул некорректный ответ.' : 'API вернул ошибку в неизвестном формате.', { kind: response.ok ? 'protocol' : 'http', status: response.status, code: 'INVALID_RESPONSE' })
     }
     if (!response.ok) {

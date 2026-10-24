@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { onlineManager, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { setupServer } from 'msw/node'
 import { http, HttpResponse } from 'msw'
 import { App } from '../app/App'
@@ -26,7 +26,7 @@ beforeEach(() => {
   repository = createRepository(memoryStorage())
   server.use(...createHandlers(repository, clock))
 })
-afterEach(() => { cleanup(); client.clear(); server.resetHandlers() })
+afterEach(() => { cleanup(); client.clear(); server.resetHandlers(); onlineManager.setOnline(true) })
 afterAll(() => server.close())
 
 function showApp() { return render(<QueryClientProvider client={client}><App api={api} clock={clock} /></QueryClientProvider>) }
@@ -45,6 +45,35 @@ function deferred() {
 }
 
 describe('booking UI through real HTTP handlers', () => {
+  it('reports a paused refresh independently from successful saving and resumes with GET only', async () => {
+    const user = userEvent.setup()
+    const realCreate = api.create
+    const spy = vi.spyOn(api, 'create').mockImplementation(async input => {
+      const saved = await realCreate(input)
+      onlineManager.setOnline(false)
+      return saved
+    })
+    showApp()
+    await loaded()
+    times()
+    await user.click(createButton())
+    await screen.findByText('Бронирование сохранено.')
+    await screen.findByText('Загрузка ожидает подключения к сети.')
+    await waitFor(() => expect(client.getMutationCache().getAll().at(-1)?.state.status).toBe('success'))
+    expect(client.getQueryState(bookingKey(baseInput.date))?.isInvalidated).toBe(true)
+    await act(async () => { onlineManager.setOnline(true) })
+    await screen.findByRole('button', { name: /Редактировать бронь без названия/ })
+    expect(spy).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows network pause without claiming a valid date is invalid', async () => {
+    onlineManager.setOnline(false)
+    showApp()
+    await screen.findByText('Загрузка ожидает подключения к сети.')
+    expect(screen.queryByText('Выберите корректную дату.')).not.toBeInTheDocument()
+    expect(createButton()).toBeDisabled()
+  })
+
   it('loads empty, creates, edits, transfers and deletes through API', async () => {
     const user = userEvent.setup()
     showApp()
