@@ -190,7 +190,7 @@ Repository предоставляет чтение snapshot и синхронн�
 
 - [x] **M1 — Setup, 20–30 минут.** Конфиги, scripts, main, стили, test/setup,
   PLAN и AGENTS. Приёмка: dev, TS, lint, build, конфигурация Vitest.
-- [ ] **M2 — Domain, 40–50 минут.** booking/time/bookingRules и unit-тесты.
+- [x] **M2 — Domain, 40–50 минут.** booking/time/bookingRules и unit-тесты.
   Приёмка: все правила, границы и два часовых пояса.
 - [ ] **M3 — API и mocks, 50–65 минут.** api/*, mocks/*, worker, bootstrap,
   HTTP/repository-тесты. Приёмка: CRUD/Fetch, валидация, persistence,
@@ -271,6 +271,8 @@ Repository предоставляет чтение snapshot и синхронн�
 | 2026-10-24 | M1 | Setup, строгий TS, Tailwind, Query provider, ESLint, Vitest/RTL setup, env, PLAN/AGENTS/README и lockfile. Финальные typecheck/lint/build/Vitest config — exit 0; dev открыт в браузере без ошибок/предупреждений | ≈11 минут настенного времени, 10:50–11:01 Asia/Tbilisi; включает установку/ожидание. Активное время отдельно не измерялось | Реализован, ожидает review |
 | 2026-10-24 | Независимый review M1 | Прочитаны все файлы M1 и lockfile metadata; исправлен избыточный диапазон Node, повторены проверки | Отдельно не измерялось | Исправлено, ожидает пользовательского review |
 | — | M2–M6 | Не начаты | — | Ожидают предыдущих этапов |
+
+| 2026-10-24 | Git + M2 | M1 принят; Git main и M1-коммит 7d435db. Domain: 61 тест, оба TZ прогона, typecheck/lint/build exit 0. Review: строгие форматы дополнены запретом завершающего перевода строки | 11:09:13–11:11:50 Asia/Tbilisi (2м37с, включая Git-подготовку) | Проверен, переход к M3 |
 
 ### Доказательства M1
 
