@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { BookingController } from '../application/useBookingController'
 import type { BookingField } from '../domain/booking'
+import { TimeField } from './TimeField'
 
 export function BookingForm({ controller: c }: { controller: BookingController }) {
   const pendingFocus = useRef<BookingField | undefined>(undefined)
@@ -14,7 +15,7 @@ export function BookingForm({ controller: c }: { controller: BookingController }
   return <section className="rounded-2xl border border-stone-200 bg-white p-5 sm:p-6" aria-labelledby="form-heading">
     <p className="text-xs font-semibold tracking-widest text-teal-700 uppercase">{c.editing ? 'Редактирование' : 'Новая встреча'}</p>
     <h2 id="form-heading" className="mt-2 text-xl font-semibold tracking-tight">{c.editing ? 'Изменить бронирование' : 'Забронировать комнату'}</h2>
-    <p className="mt-2 text-sm leading-6 text-stone-500">От 30 минут до 2 часов. Начать можно в любую минуту.</p>
+    <p className="mt-2 text-sm leading-6 text-stone-500">Рабочий день: 09:00–18:00. От 30 минут до 2 часов. Формат времени — 24 часа, с точностью до минуты.</p>
     <form noValidate className="mt-6 space-y-5" onSubmit={event => {
       event.preventDefault()
       void c.save().then(field => {
@@ -22,11 +23,11 @@ export function BookingForm({ controller: c }: { controller: BookingController }
       })
     }} aria-busy={c.isBusy}>
       <div className="grid grid-cols-2 gap-3">
-        {(['start', 'end'] as const).map(field => <div key={field} className="min-w-0">
-          <label htmlFor={`booking-${field}`} className="field-label">{field === 'start' ? 'Начало' : 'Окончание'}</label>
-          <input id={`booking-${field}`} type="time" step="60" min={field === 'start' ? c.startMin : '09:30'} max={field === 'start' ? '17:30' : '18:00'} required disabled={c.isBusy} value={c.draft[field]} onChange={e => c.changeField(field, e.target.value)} aria-invalid={!!c.errors[field]?.length} aria-describedby={c.errors[field]?.length ? `${field}-error` : undefined} className="field-input" />
-          {!!c.errors[field]?.length && <p id={`${field}-error`} className="field-error">{c.errors[field]?.join(' ')}</p>}
-        </div>)}
+        {(['start', 'end'] as const).map(field => <TimeField key={field}
+          id={`booking-${field}`} label={field === 'start' ? 'Начало' : 'Окончание'}
+          min={field === 'start' ? c.startMin : '09:30'} max={field === 'start' ? '17:30' : '18:00'}
+          disabled={c.isBusy} value={c.draft[field]} error={c.errors[field]}
+          onChange={value => c.changeField(field, value)} />)}
       </div>
       <div>
         <label htmlFor="booking-title" className="field-label">Название <span className="font-normal text-stone-500">· необязательно</span></label>
