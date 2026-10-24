@@ -10,7 +10,7 @@ const server = setupServer()
 const clock = testClock()
 const api = createBookingsApi('http://localhost/api')
 const input = { date: '2026-10-24', start: '10:00', end: '11:00', title: ' Команда ' }
-beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 beforeEach(() => {
   clock.set(new Date(2026, 9, 24, 8))
   server.use(...createHandlers(createRepository(memoryStorage()), clock))

@@ -19,7 +19,7 @@ let client: QueryClient
 let repository: BookingsRepository
 const competitor = createBookingsApi('http://localhost/api')
 const baseInput = { date: '2026-10-24', start: '10:00', end: '11:00', title: 'Исходная' }
-beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 beforeEach(() => {
   clock.set(new Date(2026, 9, 24, 8))
   client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
