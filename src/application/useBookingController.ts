@@ -3,8 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { BookingsApi } from '../api/contracts'
 import { ApiError } from '../api/errors'
 import type { Booking, BookingField, BookingInput, FieldErrors } from '../domain/booking'
-import { issueFields, validateBooking } from '../domain/bookingRules'
-import { earliestStart, formatTime, isValidDate, localDate, WORK_END, type Clock } from '../domain/time'
+import { endTimeRange, issueFields, validateBooking } from '../domain/bookingRules'
+import { earliestStart, formatTime, isValidDate, localDate, parseTime, WORK_END, type Clock } from '../domain/time'
 import { bookingsOptions } from './bookingQueries'
 import { useNow } from './useNow'
 
@@ -87,8 +87,14 @@ export function useBookingController(api: BookingsApi, clock: Clock) {
   }
   function changeField(field: 'start' | 'end' | 'title', value: string) {
     if (busy.current) return
-    setDraft(previous => ({ ...previous, [field]: value }))
-    setErrors(previous => ({ ...previous, [field]: [] }))
+    setDraft(previous => {
+      if (field !== 'start') return { ...previous, [field]: value }
+      const range = endTimeRange(value)
+      const end = parseTime(previous.end)
+      const keepEnd = !range || (end !== undefined && end >= range.min && end <= range.max)
+      return { ...previous, start: value, end: keepEnd ? previous.end : '' }
+    })
+    setErrors(previous => field === 'start' ? { ...previous, start: [], end: [] } : { ...previous, [field]: [] })
   }
   function edit(booking: Booking) {
     if (busy.current) return
@@ -105,12 +111,14 @@ export function useBookingController(api: BookingsApi, clock: Clock) {
     setErrors({})
     setNotice(null)
   }
+  const endRange = endTimeRange(draft.start)
   const earliest = earliestStart(date, now)
   const validDate = isValidDate(date)
   const unavailable = !validDate ? 'Выберите дату.' : date < localDate(now) ? 'Прошедший день доступен только для просмотра. Для сохранения выберите будущую дату.' : earliest > WORK_END - 30 ? 'Сегодня уже не осталось времени для новой брони. Выберите другой день.' : ''
   return {
     date, draft, editing, errors, notice, refreshWarning, query,
     bookings: query.data ?? [], now, isBusy: mutation.isPending,
+    endRange: endRange ? { min: formatTime(endRange.min), max: formatTime(endRange.max) } : undefined,
     unavailable, startMin: formatTime(Math.min(earliest, WORK_END)),
     canSave: validDate && query.data !== undefined && !unavailable && !mutation.isPending,
     dayLabel: validDate ? new Date(`${date}T12:00:00`).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Выберите дату',

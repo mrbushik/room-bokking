@@ -1,6 +1,15 @@
 import type { Booking, BookingField, BookingInput, FieldErrors } from './booking'
 import { isValidDate, localDate, localTimeMilliseconds, parseTime, WORK_END, WORK_START } from './time'
 
+export const MIN_DURATION = 30
+export const MAX_DURATION = 120
+
+export function endTimeRange(startValue: string): { min: number; max: number } | undefined {
+  const start = parseTime(startValue)
+  if (start === undefined || start < WORK_START || start + MIN_DURATION > WORK_END) return undefined
+  return { min: start + MIN_DURATION, max: Math.min(start + MAX_DURATION, WORK_END) }
+}
+
 export interface BookingIssue {
   field: BookingField
   code: 'FORMAT' | 'HOURS' | 'ORDER' | 'DURATION' | 'PAST' | 'CONFLICT'
@@ -22,7 +31,7 @@ export function validateBookingFields(input: BookingInput): BookingIssue[] {
   if (start < WORK_START || start >= WORK_END) issues.push({ field: 'start', code: 'HOURS', message: 'Начало должно быть в пределах 09:00–18:00.' })
   if (end < WORK_START || end > WORK_END) issues.push({ field: 'end', code: 'HOURS', message: 'Окончание должно быть в пределах 09:00–18:00.' })
   if (start >= end) issues.push({ field: 'end', code: 'ORDER', message: 'Окончание должно быть позже начала.' })
-  else if (end - start < 30 || end - start > 120) issues.push({ field: 'end', code: 'DURATION', message: 'Длительность — от 30 до 120 минут.' })
+  else if (end - start < MIN_DURATION || end - start > MAX_DURATION) issues.push({ field: 'end', code: 'DURATION', message: 'Длительность — от 30 до 120 минут.' })
   return issues
 }
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { normalizeBooking, type Booking, type BookingInput } from './booking'
-import { validateBooking, validateBookingFields } from './bookingRules'
+import { endTimeRange, validateBooking, validateBookingFields } from './bookingRules'
 
 const date = '2026-10-24'
 const now = new Date(2026, 9, 24, 8)
@@ -30,5 +30,20 @@ describe('booking rules', () => {
     expect(normalizeBooking(draft).title).toBe('Команда')
     expect(draft.title).toBe('  Команда  ')
     expect(normalizeBooking({ ...draft, title: ' ' })).not.toHaveProperty('title')
+  })
+})
+
+
+describe('end time choices', () => {
+  it.each([
+    ['09:00', 570, 660],
+    ['12:48', 798, 888],
+    ['16:45', 1035, 1080],
+    ['17:30', 1080, 1080],
+  ])('offers only the duration/working-day range for %s', (start, min, max) => {
+    expect(endTimeRange(start)).toEqual({ min, max })
+  })
+  it.each(['', '12:', 'bad', '08:59', '17:31', '18:00'])('offers no end choices for %s', start => {
+    expect(endTimeRange(start)).toBeUndefined()
   })
 })

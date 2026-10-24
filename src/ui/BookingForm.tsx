@@ -25,8 +25,8 @@ export function BookingForm({ controller: c }: { controller: BookingController }
       <div className="grid grid-cols-2 gap-3">
         {(['start', 'end'] as const).map(field => <TimeField key={field}
           id={`booking-${field}`} label={field === 'start' ? 'Начало' : 'Окончание'}
-          min={field === 'start' ? c.startMin : '09:30'} max={field === 'start' ? '17:30' : '18:00'}
-          disabled={c.isBusy} value={c.draft[field]} error={c.errors[field]}
+          min={field === 'start' ? c.startMin : c.endRange?.min ?? '18:00'} max={field === 'start' ? '17:30' : c.endRange?.max ?? '17:30'}
+          disabled={c.isBusy || (field === 'end' && !c.endRange)} value={c.draft[field]} error={c.errors[field]}
           onChange={value => c.changeField(field, value)} />)}
       </div>
       <div>

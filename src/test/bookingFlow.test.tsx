@@ -45,6 +45,43 @@ function deferred() {
 }
 
 describe('booking UI through real HTTP handlers', () => {
+  it('limits end wheels to 30–120 minutes after the selected start', async () => {
+    const user = userEvent.setup()
+    showApp()
+    await loaded()
+    expect(screen.getByLabelText('Окончание')).toBeDisabled()
+    fireEvent.change(screen.getByLabelText('Начало'), { target: { value: '12:48' } })
+    await user.click(screen.getByRole('button', { name: 'Выбрать время: окончание' }))
+    expect(screen.queryByRole('option', { name: 'Час 9' })).not.toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Час 13' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.queryByRole('option', { name: 'Минута 17' })).not.toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Минута 18' })).toBeVisible()
+    await user.click(screen.getByRole('option', { name: 'Час 14' }))
+    expect(screen.queryByRole('option', { name: 'Минута 49' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('option', { name: 'Минута 48' }))
+    await user.click(screen.getByRole('button', { name: 'Выбрать 14:48' }))
+    expect(screen.getByLabelText('Окончание')).toHaveValue('14:48')
+  })
+
+  it('updates end choices after changing start and allows the final 17:30–18:00 interval', async () => {
+    const user = userEvent.setup()
+    showApp()
+    await loaded()
+    times('12:48', '13:18')
+    fireEvent.change(screen.getByLabelText('Начало'), { target: { value: '12:47' } })
+    expect(screen.getByLabelText('Окончание')).toHaveValue('13:18')
+    fireEvent.change(screen.getByLabelText('Начало'), { target: { value: '17:30' } })
+    expect(screen.getByLabelText('Окончание')).toHaveValue('')
+    await user.click(screen.getByRole('button', { name: 'Выбрать время: окончание' }))
+    expect(screen.getAllByRole('option')).toHaveLength(2)
+    expect(screen.getByRole('option', { name: 'Час 18' })).toBeVisible()
+    expect(screen.getByRole('option', { name: 'Минута 0' })).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'Выбрать 18:00' }))
+    await user.click(createButton())
+    await screen.findByText('Бронирование сохранено.')
+    expect(await api.list(baseInput.date)).toEqual([expect.objectContaining({ start: '17:30', end: '18:00' })])
+  })
+
   it('reports a paused refresh independently from successful saving and resumes with GET only', async () => {
     const user = userEvent.setup()
     const realCreate = api.create
