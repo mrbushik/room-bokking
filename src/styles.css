@@ -24,3 +24,13 @@ body {
   .primary-button { @apply min-h-11 rounded-lg bg-teal-800 px-4 py-3 text-sm font-semibold text-white transition hover:bg-teal-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-500; }
   .secondary-button { @apply min-h-11 rounded-lg px-3 py-2 text-sm font-medium text-stone-600 transition hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 disabled:cursor-not-allowed disabled:opacity-50; }
 }
+
+
+.time-wheel {
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  touch-action: pan-y;
+  mask-image: linear-gradient(to bottom, transparent, black 35%, black 65%, transparent);
+}
+
+.time-wheel::-webkit-scrollbar { display: none; }
